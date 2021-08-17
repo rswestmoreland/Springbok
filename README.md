@@ -1,18 +1,18 @@
 # NAME
 
-Gazelle - a Preforked Plack Handler for performance freaks
+Springbok - a Preforked Plack Handler based on Gazelle
 
 # SYNOPSIS
 
-    $ plackup -s Gazelle --port 5003 --max-reqs-per-child 50000 \
+    $ plackup -s Springbok --port 5003 --max-reqs-per-child 50000 \
          -E production -a app.psgi
 
 # DESCRIPTION
 
-Gazelle is a PSGI Handler. It is derivied from [Starlet](https://metacpan.org/pod/Starlet).
+Springbok is a PSGI Handler. It is derivied from [Starlet](https://metacpan.org/pod/Starlet).
 A lot of its code was rewritten or optimized by converting it to XS code.
 
-Gazelle supports following features:
+Springbok supports following features:
 
 - Supports HTTP/1.1. (Without Keepalive support.)
 - Ultra fast HTTP processing using picohttpparser.
@@ -21,7 +21,7 @@ Gazelle supports following features:
 - Prefork and graceful shutdown using Parallel::Prefork.
 - Hot deploy and unix domain socket using Server::Starter.
 
-Gazelle is suitable for running HTTP application servers behind a reverse proxy
+Springbok is suitable for running HTTP application servers behind a reverse proxy
 such as nginx.
 
 One can find a Benchmark here:
@@ -45,16 +45,16 @@ nginx.conf:
       }
     }
 
-command line of running Gazelle
+command line of running Springbok
 
-    $ start_server --path /path/to/app.sock --backlog 16384 -- plackup -s Gazelle \
+    $ start_server --path /path/to/app.sock --backlog 16384 -- plackup -s Springbok \
       -workers=20 --max-reqs-per-child 1000 --min-reqs-per-child 800 -E production -a app.psgi
 
 start\_server is bundled with [Server::Starter](https://metacpan.org/pod/Server%3A%3AStarter)
 
 # COMMAND LINE OPTIONS
 
-In addition to the options supported by plackup, Gazelle accepts the
+In addition to the options supported by plackup, Springbok accepts the
 following options:
 
 ## --max-workers=#
@@ -93,7 +93,7 @@ the subroutine code to be executed right before a child process exits. e.g. `--c
 
 ## psgix.informational
 
-Gazelle exposes a callback named `psgix.informational` that can be used for sending an informational response.
+Springbok exposes a callback named `psgix.informational` that can be used for sending an informational response.
 The callback accepts two arguments, the first argument being the status code and the second being an arrayref of the headers to be sent.
 Example below sends an 103 response before processing the request to build a final response.
   sub {
@@ -108,11 +108,12 @@ Example below sends an 103 response before processing the request to build a fin
 # SEE ALSO
 
 [Starlet](https://metacpan.org/pod/Starlet)
+[Gazelle](https://metacpan.org/pod/Gazelle)
 [Parallel::Prefork](https://metacpan.org/pod/Parallel%3A%3APrefork)
 [Server::Starter](https://metacpan.org/pod/Server%3A%3AStarter)
 [https://github.com/h2o/picohttpparser](https://github.com/h2o/picohttpparser)
 
-# LICENSE of Starlet
+# LICENSE of Starlet/Gazelle
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
