@@ -5,7 +5,7 @@ use t::TestUtils;
 
 
 $Plack::Test::Impl = "Server";
-$ENV{PLACK_SERVER} = 'Gazelle';
+$ENV{PLACK_SERVER} = 'Springbok';
 
 
 {

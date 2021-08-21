@@ -5,7 +5,7 @@ use t::TestUtils;
 use HTTP::Request::Common;
 
 $Plack::Test::Impl = 'Server';
-$ENV{PLACK_SERVER} = 'Gazelle';
+$ENV{PLACK_SERVER} = 'Springbok';
 
 test_psgi
     client => sub {

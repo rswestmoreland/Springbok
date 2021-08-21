@@ -30,7 +30,7 @@ EOT
     },
     server => sub {
         my $port = shift;
-        my $loader = Plack::Loader->load('Gazelle', port => $port);
+        my $loader = Plack::Loader->load('Springbok', port => $port);
         $loader->run(sub {
             my $env = shift;
             $env->{"psgix.informational"}->(100, [foo => 123, bar => 456]);

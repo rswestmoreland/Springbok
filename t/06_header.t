@@ -13,7 +13,7 @@ my $crlf = "\015\012";
 test_tcp(
     server => sub {
         my $port = shift;
-        Plack::Loader->load('Gazelle','port'=>$port,'max_workers'=>1)->run(sub{
+        Plack::Loader->load('Springbok','port'=>$port,'max_workers'=>1)->run(sub{
             my $env = shift;
             my $body='';
             for (keys %$env) {

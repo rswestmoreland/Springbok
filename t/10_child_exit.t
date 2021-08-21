@@ -15,7 +15,7 @@ if ( $pid == 0 ) {
     my $runner = Plack::Runner->new;
     $runner->parse_options(
         '--port', $port,
-        qw(--server Gazelle --max-workers 1 --child-exit),
+        qw(--server Springbok --max-workers 1 --child-exit),
         "sub { kill 'CONT', $main_pid }",
     );
     $runner->run(sub{

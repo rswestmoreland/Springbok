@@ -1,10 +1,11 @@
-requires 'perl', '5.008001';
+requires 'perl', '5.16.3';
 
-requires 'Plack','1.0037';
+requires 'Plack','1.0048';
 requires 'Stream::Buffered';
 requires 'Parallel::Prefork', '0.18';
 requires 'Server::Starter';
 requires 'Guard';
+requires 'Crypt::Random::Seed';
 
 on 'configure' => sub {
     requires 'Devel::CheckCompiler', '0.04';

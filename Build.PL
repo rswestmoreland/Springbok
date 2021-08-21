@@ -3,7 +3,7 @@
 # DO NOT EDIT DIRECTLY.
 # =========================================================================
 
-use 5.008_001;
+use 5.16.3;
 
 use strict;
 use warnings;
@@ -25,10 +25,10 @@ my %args = (
     requires => {
         'Guard' => '0',
         'Parallel::Prefork' => '0.18',
-        'Plack' => '1.0037',
+        'Plack' => '1.0048',
         'Server::Starter' => '0',
         'Stream::Buffered' => '0',
-        'perl' => '5.008001',
+        'perl' => '5.16.3',
     },
 
     recommends => {
@@ -49,8 +49,8 @@ my %args = (
         'Test::TCP' => '2',
     },
 
-    name            => 'Gazelle',
-    module_name     => 'Gazelle',
+    name            => 'Springbok',
+    module_name     => 'Springbok',
     allow_pureperl => 0,
 
     script_files => [glob('script/*'), glob('bin/*')],

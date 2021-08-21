@@ -13,7 +13,7 @@ my $req3 = "GET /foo/bar HTTP/1.1\r\nHost: example.com\r\nReferer: http://プラ
 test_tcp(
     server => sub {
         my $port = shift;
-        Plack::Loader->load('Gazelle','port'=>$port,'max_workers'=>1)->run(sub{
+        Plack::Loader->load('Springbok','port'=>$port,'max_workers'=>1)->run(sub{
             [ 200, [ 'Content-Type' => 'text/plain' ], [ "hello world $$" ] ]
         });
         exit;

@@ -1,6 +1,6 @@
-package Gazelle;
+package Springbok;
 
-use 5.008001;
+use 5.16.3;
 use strict;
 use warnings;
 
@@ -14,19 +14,19 @@ __END__
 
 =head1 NAME
 
-Gazelle - a Preforked Plack Handler for performance freaks
+Springbok - a Preforked Plack Handler for based on Gazelle
 
 =head1 SYNOPSIS
 
-    $ plackup -s Gazelle --port 5003 --max-reqs-per-child 50000 \
+    $ plackup -s Springbok --port 8080 --max-reqs-per-child 10000 \
          -E production -a app.psgi
 
 =head1 DESCRIPTION
 
-Gazelle is a PSGI Handler. It is derivied from L<Starlet>.
+Springbok is a PSGI Handler. It is derivied from L<Gazelle>.
 A lot of its code was rewritten or optimized by converting it to XS code.
 
-Gazelle supports following features:
+Springbok supports following features:
 
 =over
 
@@ -44,10 +44,10 @@ Gazelle supports following features:
 
 =back
 
-Gazelle is suitable for running HTTP application servers behind a reverse proxy
+Springbok is suitable for running HTTP application servers behind a reverse proxy
 such as nginx.
 
-One can find a Benchmark here:
+One can find a Benchmark for Gazelle here:
 L<https://github.com/kazeburo/Gazelle/wiki/Benchmark> .
 
 =head1 SAMPLE CONFIGURATION WITH NGINX
@@ -68,16 +68,16 @@ nginx.conf:
     }
   }
 
-command line of running Gazelle
+command line of running Springbok
 
-  $ start_server --path /path/to/app.sock --backlog 16384 -- plackup -s Gazelle \
+  $ start_server --path /path/to/app.sock --backlog 16384 -- plackup -s Springbok \
     -workers=20 --max-reqs-per-child 1000 --min-reqs-per-child 800 -E production -a app.psgi
 
 start_server is bundled with L<Server::Starter>
 
 =head1 COMMAND LINE OPTIONS
 
-In addition to the options supported by plackup, Gazelle accepts the
+In addition to the options supported by plackup, Springbok accepts the
 following options:
 
 =head2 --max-workers=#
@@ -116,7 +116,7 @@ the subroutine code to be executed right before a child process exits. e.g. C<--
 
 =head2 psgix.informational
 
-Gazelle exposes a callback named C<psgix.informational> that can be used for sending an informational response.
+Springbok exposes a callback named C<psgix.informational> that can be used for sending an informational response.
 The callback accepts two arguments, the first argument being the status code and the second being an arrayref of the headers to be sent.
 Example below sends an 103 response before processing the request to build a final response.
   sub {

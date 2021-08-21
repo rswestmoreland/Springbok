@@ -1,9 +1,9 @@
-package Plack::Handler::Gazelle;
+package Plack::Handler::Springbok;
 
-use 5.008001;
+use 5.16.3;
 use strict;
 use warnings;
-use IO::Socket::INET;
+use IO::Socket::IP;
 use Plack::Util;
 use Stream::Buffered;
 use POSIX qw(EINTR EAGAIN EWOULDBLOCK);
@@ -11,6 +11,7 @@ use Socket qw(IPPROTO_TCP TCP_NODELAY);
 use Parallel::Prefork;
 use Server::Starter ();
 use Guard;
+use Crypt::Random::Seed;
 
 our $VERSION = "0.49";
 
@@ -24,35 +25,39 @@ my $null_io = do { open my $io, "<", \""; $io };
 my $bad_response = [ 400, [ 'Content-Type' => 'text/plain', 'Connection' => 'close' ], [ 'Bad Request' ] ];
 
 sub new {
-    my($class, %args) = @_;
+    my( $class, %args ) = @_;
 
     # setup before instantiation
-    if ($args{listen_sock}) {
+    if ( $args{listen_sock} ) {
         $args{host} = $args{listen_sock}->sockhost;
         $args{port} = $args{listen_sock}->sockport;
     }
-    elsif (defined $ENV{SERVER_STARTER_PORT}) {
-        my ($hostport, $fd) = %{Server::Starter::server_ports()};
-        if ($hostport =~ /(.*):(\d+)/) {
+    elsif ( defined $ENV{SERVER_STARTER_PORT} ) {
+        my ( $hostport, $fd ) = %{Server::Starter::server_ports()};
+
+        if ( $hostport =~ /(.*):(\d+)/ ) {
             $args{host} = $1;
             $args{port} = $2;
-        } else {
+        }
+        else {
             $args{port} = $hostport;
         }
-        $args{listen_sock} = IO::Socket::INET->new(
+
+        $args{listen_sock} = IO::Socket::IP->new(
             Proto => 'tcp',
         ) or die "failed to create socket:$!";
+
         $args{listen_sock}->fdopen($fd, 'w')
             or die "failed to bind to listening socket:$!";
     }
 
     my $max_workers = 10;
-    for (qw(max_workers workers)) {
+    foreach ( qw(max_workers workers) ) {
         $max_workers = delete $args{$_}
             if defined $args{$_};
     }
 
-    if ($args{child_exit}) {
+    if ( $args{child_exit} ) {
         $args{child_exit} = eval $args{child_exit} unless ref($args{child_exit});
         die "child_exit is defined but not a code block" if ref($args{child_exit}) ne 'CODE';
     }
@@ -85,7 +90,8 @@ sub new {
 
 sub setup_listener {
     my $self = shift;
-    $self->{listen_sock} ||= IO::Socket::INET->new(
+
+    $self->{listen_sock} ||= IO::Socket::IP->new(
         Listen    => SOMAXCONN,
         LocalPort => $self->{port},
         LocalAddr => $self->{host},
@@ -97,16 +103,19 @@ sub setup_listener {
     $self->{_listen_sock_is_tcp} = $family != AF_UNIX;
 
     # set defer accept
-    if ($^O eq 'linux' && $self->{_listen_sock_is_tcp}) {
+    if ( $^O eq 'linux' && $self->{_listen_sock_is_tcp} ) {
         setsockopt($self->{listen_sock}, IPPROTO_TCP, 9, 1);
     }
+
     $self->{server_ready}->($self);
 }
 
 
 sub run {
-    my($self, $app) = @_;
+    my( $self, $app ) = @_;
+
     $self->setup_listener();
+
     # use Parallel::Prefork
     my %pm_args = (
         max_workers => $self->{max_workers},
@@ -114,13 +123,16 @@ sub run {
             HUP  => 'TERM',
         },
     );
-    if (defined $self->{spawn_interval}) {
+
+    if ( defined $self->{spawn_interval} ) {
         $pm_args{trap_signals}{USR1} = [ 'TERM', $self->{spawn_interval} ];
         $pm_args{spawn_interval} = $self->{spawn_interval};
     }
-    if (defined $self->{err_respawn_interval}) {
+
+    if ( defined $self->{err_respawn_interval} ) {
         $pm_args{err_respawn_interval} = $self->{err_respawn_interval};
     }
+
     my $pm = Parallel::Prefork->new(\%pm_args);
 
     local $SIG{TERM} = sub {
@@ -131,9 +143,12 @@ sub run {
         $pm->signal_received('TERM');
         $pm->signal_all_children('TERM');
     };
-    while ($pm->signal_received !~ /^(TERM|USR1)$/) {
-        $pm->start(sub{
-            srand((rand() * 2 ** 30) ^ $$ ^ time);
+
+    while ( $pm->signal_received !~ /^(TERM|USR1)$/ ) {
+        $pm->start( sub {
+
+            my $seed = Crypt::Random::Seed->new( NonBlocking => 1 );
+            srand($seed->random_values(1));
 
             my $max_reqs_per_child = $self->_calc_minmax_per_child(
                 $self->{max_reqs_per_child},
@@ -146,23 +161,24 @@ sub run {
                 $self->{term_received}++;
             };
             local $SIG{PIPE} = 'IGNORE';
-        PROC_LOOP:
-            while ( $proc_req_count < $max_reqs_per_child) {
+
+            PROC_LOOP: while ( $proc_req_count < $max_reqs_per_child ) {
                 if ( $self->{term_received} ) {
                     $self->{child_exit}->($self, $app);
                     exit 0;
                 }
                 if ( my ($conn, $buf, $env) = accept_psgi(
-                    fileno($self->{listen_sock}), $self->{timeout}, $self->{_listen_sock_is_tcp},
-                    $self->{host} || 0, $self->{port} || 0
-                ) ) {
+                     fileno($self->{listen_sock}), $self->{timeout}, $self->{_listen_sock_is_tcp},
+                     $self->{host} || 0, $self->{port} || 0 )
+                ) {
                     my $guard = guard { close_client($conn) };
                     ++$proc_req_count;
 
                     my $res = $bad_response;
                     my $chunked = do { no warnings; lc delete $env->{HTTP_TRANSFER_ENCODING} eq 'chunked' };
-                    if (my $cl = $env->{CONTENT_LENGTH}) {
+                    if ( my $cl = $env->{CONTENT_LENGTH} ) {
                         my $buffer = Stream::Buffered->new($cl);
+
                         while ($cl > 0) {
                             my $chunk = "";
                             if (length $buf) {
@@ -181,7 +197,8 @@ sub run {
                         my $buffer = Stream::Buffered->new($cl);
                         my $chunk_buffer = '';
                         my $length;
-                    DECHUNK: while(1) {
+
+                        DECHUNK: while(1) {
                             my $chunk = "";
                             if ( length $buf ) {
                                 $chunk = $buf;
@@ -244,11 +261,12 @@ sub run {
 sub _calc_minmax_per_child {
     my $self = shift;
     my ($max,$min) = @_;
-    if (defined $min) {
+
+    if ( defined $min ) {
         return $max - int(($max - $min + 1) * rand);
-    } else {
-        return $max;
     }
+
+    return $max;
 }
 
 sub _handle_response {

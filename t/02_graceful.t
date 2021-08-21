@@ -6,7 +6,7 @@ use t::TestUtils;
 use Test::More;
 
 $Plack::Test::Impl = 'Server';
-$ENV{PLACK_SERVER} = 'Gazelle';
+$ENV{PLACK_SERVER} = 'Springbok';
 
 test_psgi
     app => sub {

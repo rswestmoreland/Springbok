@@ -517,7 +517,7 @@ int _chunked_header(char *buf, ssize_t len) {
     return i;
 }
 
-MODULE = Plack::Handler::Gazelle    PACKAGE = Plack::Handler::Gazelle
+MODULE = Plack::Handler::Springbok    PACKAGE = Plack::Handler::Springbok
 
 PROTOTYPES: DISABLE
 
@@ -963,8 +963,8 @@ write_psgi_response(fileno, timeout, status_code, headers, body, use_chunkedv)
     AV * body
     SV * use_chunkedv
   ALIAS:
-    Plack::Handler::Gazelle::write_psgi_response = 0
-    Plack::Handler::Gazelle::write_psgi_response_header = 1
+    Plack::Handler::Springbok::write_psgi_response = 0
+    Plack::Handler::Springbok::write_psgi_response_header = 1
   PREINIT:
     ssize_t rv;
     ssize_t iovcnt;
