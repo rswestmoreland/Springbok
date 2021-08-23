@@ -13,7 +13,7 @@ test_psgi
 
         my $res = $cb->(GET "/");
         ok( $res->is_success );
-        like( scalar $res->header('Server'), qr/gazelle/ );
+        like( scalar $res->header('Server'), qr/springbok/ );
         unlike( scalar $res->header('Server'), qr/Hello/ );
 
         $res = $cb->(GET "/?server=>1");

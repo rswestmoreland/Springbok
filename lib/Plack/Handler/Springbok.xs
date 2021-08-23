@@ -52,7 +52,7 @@ extern "C" {
 
 #define MAX_HEADER_SIZE 16384
 #define MAX_HEADER_NAME_LEN 1024
-#define MAX_HEADERS         128
+#define MAX_HEADERS 128
 #if defined(__OpenBSD__)
 #define READ_BUFSZ 16383
 #else
@@ -140,21 +140,21 @@ status_message (int code) {
     default: break;
   }
   /* default to the Nxx group names in RFC 2616 */
-  if (100 <= code && code <= 199) {
+  if ( 100 <= code && code <= 199 ) {
     return "Informational";
   }
-  else if (200 <= code && code <= 299) {
+  else if ( 200 <= code && code <= 299 ) {
     return "Success";
-    }
-    else if (300 <= code && code <= 399) {
-        return "Redirection";
-    }
-    else if (400 <= code && code <= 499) {
-        return "Client Error";
-    }
-    else {
-        return "Error";
-    }
+  }
+  else if ( 300 <= code && code <= 399 ) {
+    return "Redirection";
+  }
+  else if ( 400 <= code && code <= 499 ) {
+    return "Client Error";
+  }
+  else {
+    return "Error";
+  }
 }
 
 /* stolen from HTTP::Parser::XS */
@@ -162,8 +162,8 @@ static
 size_t find_ch(const char* s, size_t len, char ch)
 {
   size_t i;
-  for (i = 0; i != len; ++i, ++s)
-    if (*s == ch)
+  for ( i = 0; i != len; ++i, ++s )
+    if ( *s == ch )
       break;
   return i;
 }
@@ -173,10 +173,10 @@ int header_is(const struct phr_header* header, const char* name,
                     size_t len)
 {
   const char* x, * y;
-  if (header->name_len != len)
+  if ( header->name_len != len )
     return 0;
-  for (x = header->name, y = name; len != 0; --len, ++x, ++y)
-    if (TOU(*x) != *y)
+  for ( x = header->name, y = name; len != 0; --len, ++x, ++y )
+    if ( TOU(*x) != *y )
       return 0;
   return 1;
 }
@@ -194,7 +194,7 @@ int store_path_info(pTHX_ HV* env, const char* src, size_t src_len) {
   (void)SvUPGRADE(dst, SVt_PV);
   d = SvGROW(dst, src_len * 3 + 1);
 
-  for (i = 0; i < src_len; i++ ) {
+  for ( i = 0; i < src_len; i++ ) {
     if ( src[i] == '%' ) {
       if ( !isxdigit(src[i+1]) || !isxdigit(src[i+2]) ) {
         return -1;
@@ -245,9 +245,9 @@ _parse_http_request(pTHX_ char *buf, ssize_t buf_len, HV *env) {
     &minor_version, headers, &num_headers, 0
   );
 
-  if (ret < 0)
+  if ( ret < 0 )
     goto done;
-  if (minor_version > 1 || minor_version < 0 ) {
+  if ( minor_version > 1 || minor_version < 0 ) {
     ret = -1;
     goto done;
   }
@@ -267,42 +267,42 @@ _parse_http_request(pTHX_ char *buf, ssize_t buf_len, HV *env) {
     ret = -1;
     goto done;
   }
-  if (question_at != path_len) ++question_at;
+  if ( question_at != path_len ) ++question_at;
   (void)hv_stores(env, "QUERY_STRING", newSVpvn(path + question_at, path_len - question_at));
 
   last_value = NULL;
-  for (i = 0; i < num_headers; ++i) {
-    if (headers[i].name != NULL) {
+  for ( i = 0; i < num_headers; ++i ) {
+    if ( headers[i].name != NULL ) {
       const char* name;
       size_t name_len;
       SV** slot;
-      if (header_is(headers + i, "CONTENT-TYPE", sizeof("CONTENT-TYPE") - 1)) {
+      if ( header_is(headers + i, "CONTENT-TYPE", sizeof("CONTENT-TYPE") - 1) ) {
         name = "CONTENT_TYPE";
         name_len = sizeof("CONTENT_TYPE") - 1;
-      } else if (header_is(headers + i, "CONTENT-LENGTH", sizeof("CONTENT-LENGTH") - 1)) {
+      } else if ( header_is(headers + i, "CONTENT-LENGTH", sizeof("CONTENT-LENGTH") - 1) ) {
         name = "CONTENT_LENGTH";
         name_len = sizeof("CONTENT_LENGTH") - 1;
       } else {
         const char* s;
         char* d;
         size_t n;
-        if (sizeof(tmp) - 5 < headers[i].name_len) {
+        if ( sizeof(tmp) - 5 < headers[i].name_len ) {
           hv_clear(env);
           ret = -1;
           goto done;
         }
         strcpy(tmp, "HTTP_");
-        for (s = headers[i].name, n = headers[i].name_len, d = tmp + 5;
-          n != 0;
-          s++, --n, d++) {
-            *d = *s == '-' ? '_' : TOU(*s);
-            name = tmp;
-            name_len = headers[i].name_len + 5;
+        for ( s = headers[i].name, n = headers[i].name_len, d = tmp + 5;
+              n != 0;
+              s++, --n, d++ ) {
+          *d = *s == '-' ? '_' : TOU(*s);
+          name = tmp;
+          name_len = headers[i].name_len + 5;
         }
       }
       slot = hv_fetch(env, name, name_len, 1);
       if ( !slot ) croak("ERROR: failed to create hash entry");
-      if (SvOK(*slot)) {
+      if ( SvOK(*slot) ) {
         sv_catpvn(*slot, ", ", 2);
         sv_catpvn(*slot, headers[i].value, headers[i].value_len);
       } else {
@@ -310,7 +310,7 @@ _parse_http_request(pTHX_ char *buf, ssize_t buf_len, HV *env) {
         last_value = *slot;
       }
     } else {
-      /* continuing lines of a mulitiline header */
+      /* continuing lines of a multiline header */
       sv_catpvn(last_value, headers[i].value, headers[i].value_len);
     }
   }
@@ -323,7 +323,7 @@ STATIC_INLINE
 char *
 svpv2char(pTHX_ SV *sv, STRLEN *lp)
 {
-  if (SvGAMAGIC(sv))
+  if ( SvGAMAGIC(sv) )
     sv = sv_2mortal(newSVsv(sv));
   return SvPV(sv, *lp);
 }
@@ -338,7 +338,7 @@ _accept(int fileno, struct sockaddr *addr, unsigned int addrlen) {
 #else
     fd = accept(fileno, addr, &addrlen);
 #endif
-    if (fd < 0) {
+    if ( fd < 0 ) {
       return fd;
     }
 #ifndef HAVE_ACCEPT4
@@ -544,7 +544,7 @@ BOOT:
     (void)hv_stores(e,"psgix.input.buffered", newSViv(1));
     (void)hv_stores(e,"psgix.harakiri",       newSViv(1));
 
-    /* stolenn from Feersum */
+    /* stolen from Feersum */
     /* placeholders that get defined for every request */
     (void)hv_stores(e, "SERVER_PROTOCOL", &PL_sv_undef);
     (void)hv_stores(e, "SERVER_NAME",     &PL_sv_undef);
@@ -569,8 +569,6 @@ BOOT:
     (void)hv_stores(e, "HTTP_ACCEPT_CHARSET",    &PL_sv_placeholder);
     (void)hv_stores(e, "HTTP_REFERER",           &PL_sv_placeholder);
     (void)hv_stores(e, "HTTP_COOKIE",            &PL_sv_placeholder);
-    (void)hv_stores(e, "HTTP_IF_MODIFIED_SINCE", &PL_sv_placeholder);
-    (void)hv_stores(e, "HTTP_IF_NONE_MATCH",     &PL_sv_placeholder);
     (void)hv_stores(e, "HTTP_IF_MODIFIED_SINCE", &PL_sv_placeholder);
     (void)hv_stores(e, "HTTP_IF_NONE_MATCH",     &PL_sv_placeholder);
     (void)hv_stores(e, "HTTP_CACHE_CONTROL",     &PL_sv_placeholder);
@@ -640,7 +638,7 @@ PPCODE:
         goto badexit_clear;
       }
       if ( MAX_HEADER_SIZE - buf_len == 0 ) {
-        /* too large header  */
+       /* too large header */
        char* badreq;
        badreq = BAD_REQUEST;
        rv = _write_timeout(fd, timeout, badreq, sizeof(BAD_REQUEST) - 1);
@@ -837,7 +835,7 @@ write_all(fileno, buf, offset, timeout)
       }
       written += rv;
     }
-    if (rv < 0) XSRETURN_UNDEF;
+    if ( rv < 0 ) XSRETURN_UNDEF;
     RETVAL = (unsigned long)written;
   OUTPUT:
     RETVAL
@@ -897,7 +895,7 @@ write_informational_response(fileno, timeout, status_code, headers)
       iovcnt++;
 
       i=0;
-      while (i < av_len(headers) + 1 ) {
+      while ( i < av_len(headers) + 1 ) {
         /* key */
         key = svpv2char(aTHX_ *av_fetch(headers,i,0), &key_len);
         i++;
@@ -948,7 +946,7 @@ write_informational_response(fileno, timeout, status_code, headers)
       }
     }
 
-    if (rv < 0) XSRETURN_UNDEF;
+    if ( rv < 0 ) XSRETURN_UNDEF;
     RETVAL = (unsigned long) written;
   OUTPUT:
     RETVAL
@@ -1030,8 +1028,8 @@ write_psgi_response(fileno, timeout, status_code, headers, body, use_chunkedv)
       /* for date header */
       iovcnt++;
 
-      v[iovcnt].iov_base = "Server: gazelle\r\n";
-      v[iovcnt].iov_len = sizeof("Server: gazelle\r\n")-1;
+      v[iovcnt].iov_base = "Server: springbok\r\n";
+      v[iovcnt].iov_len = sizeof("Server: springbok\r\n")-1;
       iovcnt++;
 
       i=0;
@@ -1163,7 +1161,7 @@ write_psgi_response(fileno, timeout, status_code, headers, body, use_chunkedv)
     }
     sv_setiv(use_chunkedv, use_chunked);
     Safefree(chunked_header_buf);
-    if (rv < 0) XSRETURN_UNDEF;
+    if ( rv < 0 ) XSRETURN_UNDEF;
     RETVAL = (unsigned long) written;
   OUTPUT:
     RETVAL
